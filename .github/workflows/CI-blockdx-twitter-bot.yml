@@ -1,0 +1,46 @@
+name: CI Blockdx Twitter Bot
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v1.0.1
+      with:
+        # Username used to log in to a Docker registry. If not set then no login will occur
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        # Docker repository to tag the image with
+        repository: blockdx-twitterbot
+        # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
+        #tags: # optional
+        # Automatically tags the built image with the git reference as per the readme
+        #tag_with_ref: # optional
+        # Automatically tags the built image with the git short SHA as per the readme
+        #tag_with_sha: # optional
+        # Path to the build context
+        #path: # optional, default is .
+        # Path to the Dockerfile (Default is '{path}/Dockerfile')
+        dockerfile: ./XBridgeTwitterBot/Dockerfile
+        # Sets the target stage to build
+        #target: # optional
+        # Always attempt to pull a newer version of the image
+        #always_pull: # optional
+        # Comma-delimited list of build-time variables
+        #build_args: # optional
+        # Comma-delimited list of labels to add to the built image
+        #labels: # optional
+        # Adds labels with git repository information to the built image
+        #add_git_labels: # optional
+        # Whether to push the image
+        push: true
