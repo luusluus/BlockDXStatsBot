@@ -13,34 +13,44 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v1.0.1
+    - name: Publish Docker
+      uses: elgohr/Publish-Docker-Github-Action@2.14
       with:
-        # Username used to log in to a Docker registry. If not set then no login will occur
+        # The name of the image you would like to push
+        name: lucienmartijn/blockdx-twitterbot
+        # The login username for the registry
         username: ${{ secrets.DOCKERHUB_USERNAME }}
-        # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
+        # The login password for the registry
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        # Docker repository to tag the image with
-        repository: blockdx-twitterbot
-        # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-        #tags: # optional
-        # Automatically tags the built image with the git reference as per the readme
-        #tag_with_ref: # optional
-        # Automatically tags the built image with the git short SHA as per the readme
-        #tag_with_sha: # optional
-        # Path to the build context
-        #path: # optional, default is .
-        # Path to the Dockerfile (Default is '{path}/Dockerfile')
-        dockerfile: ./XBridgeTwitterBot/Dockerfile
-        # Sets the target stage to build
-        #target: # optional
-        # Always attempt to pull a newer version of the image
-        #always_pull: # optional
-        # Comma-delimited list of build-time variables
-        #build_args: # optional
-        # Comma-delimited list of labels to add to the built image
-        #labels: # optional
-        # Adds labels with git repository information to the built image
-        #add_git_labels: # optional
-        # Whether to push the image
-        push: true
+        # Use registry for pushing to a custom registry
+        #registry: lucienmartijn/blockdx-twitterbot
+        # Use snapshot to push an additional image
+        #snapshot: # optional
+        # Use dockerfile when you would like to explicitly build a Dockerfile
+        dockerfile: ./Dockerfile
+        # Use workdir when you would like to change the directory for building
+        #workdir: # optional
+        # Use buildargs when you want to pass a list of environment variables as build-args
+        #buildargs: # optional
+        # Use cache when you have big images, that you would only like to build partially
+        #cache: # optional
+        # Use tag_names when you want to push tags/release by their git name
+        #tag_names: # optional
+        # Push semver docker tags. e.g. image:1.2.3, image:1.2, image:1
+        #tag_semver: # optional
+          
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        
+    - name: Trigger deploy
+      uses: Consensys/kubernetes-action@master
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+      with:
+        args: apply deployment.yaml
+          
+
