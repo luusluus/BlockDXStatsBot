@@ -17,13 +17,13 @@ jobs:
       uses: elgohr/Publish-Docker-Github-Action@2.14
       with:
         # The name of the image you would like to push
-        name: blockdx-twitterbot
+        name: lucienmartijn / blockdx-twitterbot
         # The login username for the registry
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         # The login password for the registry
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
         # Use registry for pushing to a custom registry
-        registry: lucienmartijn/blockdx-twitterbot
+        #registry: lucienmartijn/blockdx-twitterbot
         # Use snapshot to push an additional image
         #snapshot: # optional
         # Use dockerfile when you would like to explicitly build a Dockerfile
