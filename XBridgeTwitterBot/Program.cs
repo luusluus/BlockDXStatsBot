@@ -20,6 +20,7 @@ namespace XBridgeTwitterBot
         static readonly HttpClient client = new HttpClient();
 
         const double interval = 1000 * 60 * 60 * 24;
+        //const double interval = 10000;
         static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -40,7 +41,7 @@ namespace XBridgeTwitterBot
             client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
 
-            //checkForTime_Elapsed();
+            //CheckForTime_Elapsed();
             Timer checkForTime = new Timer(interval);
             checkForTime.Elapsed += new ElapsedEventHandler(CheckForTime_Elapsed);
             checkForTime.Enabled = true;
@@ -48,6 +49,7 @@ namespace XBridgeTwitterBot
             Console.ReadKey();
         }
 
+        //private static async void CheckForTime_Elapsed()
         private static async void CheckForTime_Elapsed(object sender, ElapsedEventArgs e)
         {
             try
@@ -95,11 +97,12 @@ namespace XBridgeTwitterBot
                 // Total number of trades
                 int totalNumberOfTrades = tradeHistoryResponse.Reply.Count;
 
-                string tweet = "24 Hour @BlockDXExchange Statistics " + DateTime.Now.ToUniversalTime().ToString("MMMM d yyyy") + " UTC"
-                    + "\n\n$USD Volume: $" + totalVolumeUSD.ToString(CultureInfo.InvariantCulture)
-                    + "\n$BLOCK Volume: " + totalVolumeBLOCK.ToString(CultureInfo.InvariantCulture) + " BLOCK"
-                    + "\n$BTC Volume: " + totalVolumeBTC.ToString(CultureInfo.InvariantCulture) + " BTC"
-                    + "\nNumber of Trades: " + totalNumberOfTrades;
+                string tweet = "24 Hour @BlockDXExchange Statistics (" + DateTime.Now.ToUniversalTime().ToString("MMMM d yyyy") + " UTC)"
+                    + "\n\nTrading Volume:"
+                    + "\n\n$USD: $" + totalVolumeUSD.ToString("N3", CultureInfo.InvariantCulture)
+                    + "\n$BLOCK: " + totalVolumeBLOCK.ToString("N3",CultureInfo.InvariantCulture) + " BLOCK"
+                    + "\n$BTC: " + totalVolumeBTC.ToString("N3",CultureInfo.InvariantCulture) + " BTC"
+                    + "\n\nNumber of Trades: " + totalNumberOfTrades;
 
                 Console.WriteLine(tweet);
                 Tweet.PublishTweet(tweet);
