@@ -41,6 +41,7 @@ namespace XBridgeTwitterBot
             client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
 
+            Console.WriteLine("BlockDX Twitter Bot Running...");
             //CheckForTime_Elapsed();
             Timer checkForTime = new Timer(interval);
             checkForTime.Elapsed += new ElapsedEventHandler(CheckForTime_Elapsed);
