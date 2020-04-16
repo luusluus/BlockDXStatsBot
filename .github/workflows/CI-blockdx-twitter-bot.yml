@@ -46,16 +46,12 @@ jobs:
 #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 #         aws-region: us-east-1
         
-    - name: Deploy
-      uses: cancue/eks-action@v0.0.2
+    - name: deploy to cluster
+      uses: rsooo/kubectl@v1.0.1
       env:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_region: ${{ secrets.AWS_REGION }}
-        cluster_name: ${{ secrets.CLUSTER_NAME }}
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
       with:
-        args: |
-          kubectl apply -f deployment.yml
+        args: apply -f deployment.yml
  
           
 
