@@ -46,14 +46,16 @@ jobs:
 #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 #         aws-region: us-east-1
         
-    - name: Build and push CONTAINER_NAME
-      uses: ianbelcher/eks-kubectl-action@master
-      with:
+    - name: Deploy
+      uses: cancue/eks-action@v0.0.2
+      env:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_region: us-east-1
+        aws_region: ${{ secrets.AWS_REGION }}
         cluster_name: ${{ secrets.CLUSTER_NAME }}
-        args: apply -f deployment.yml
+      with:
+        args: |
+          kubectl apply -f deployment.yml
  
           
 
