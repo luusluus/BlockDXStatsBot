@@ -15,12 +15,14 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
+using System.Web.Http;
+using System.Net;
 
 namespace XBridgeTwitterBot
 {
     class Program
     {
-        static readonly HttpClient client = new HttpClient();
+        private static readonly HttpClient client = new HttpClient();
 
         const double interval = 1000 * 60 * 60 * 24;
         //const double interval = 10000;
@@ -58,17 +60,23 @@ namespace XBridgeTwitterBot
                 twitterSettings.Value.UserAccessSecret
             );
 
-            Console.WriteLine(apiSettings.Value.BaseAddress);
-
             client.BaseAddress = new Uri(apiSettings.Value.BaseAddress);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
 
             Console.WriteLine("BlockDX Twitter Bot Running...");
-            var tweet = ComposeTweet().Result;
-            Console.WriteLine(tweet);
-            Tweet.PublishTweet(tweet);
+
+            try
+            {
+                var tweet = await ComposeTweet();
+                //Tweet.PublishTweet(tweet);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
             Timer checkForTime = new Timer(interval);
             checkForTime.Elapsed += new ElapsedEventHandler(CheckForTime_Elapsed);
             checkForTime.Enabled = true;
@@ -92,6 +100,12 @@ namespace XBridgeTwitterBot
 
         private static async Task<string> ComposeTweet()
         {
+            string baseUrl = "https://raw.githubusercontent.com/blocknetdx/blockchain-configuration-files/master/manifest-latest.json";
+
+            var getAssetsTask = client.GetStringAsync(baseUrl);
+
+            var assetWhiteList = JsonConvert.DeserializeObject<List<Asset>>(await getAssetsTask);
+
             var request = new XCloudServiceRequest
             {
                 Service = "xrs::dxGet24hrTradeSummary",
@@ -99,12 +113,27 @@ namespace XBridgeTwitterBot
                 NodeCount = 1
             };
             var tradeSummaryResponse = await ServiceAsync<XCloudServiceResponse<List<Dictionary<string, DXTradePair>>>>(request);
-            var tradesummary = tradeSummaryResponse.Reply.First().Where(p => !p.Key.Contains("CHN")).ToDictionary(p => p.Key, p => p.Value);
-            var coins = new HashSet<string>();
-            foreach (var item in tradesummary.Keys.ToList())
+
+            if (tradeSummaryResponse.Reply == null)
             {
-        
-                    coins.Add(item.Split('-')[0]);
+                var responseMessage = new HttpResponseMessage();
+                responseMessage.Content = new StringContent("Error at XCloud Service " + request.Service + ". Parameters: " + request.Parameters + ".");
+                responseMessage.StatusCode = HttpStatusCode.InternalServerError;
+                throw new HttpResponseException(responseMessage);
+            }
+            var trades = tradeSummaryResponse.Reply.First()
+                .Where(p => 
+                {
+                    var tradedAssets = p.Key.Split("-").ToList();
+                    var result = tradedAssets.All(ta => assetWhiteList.Select(awl => awl.Ticker).Contains(ta));
+                    return result;
+                })
+                .ToDictionary(p => p.Key, p => p.Value);
+            
+            var coins = new HashSet<string>();
+            foreach (var item in trades.Keys.ToList())
+            {
+                coins.Add(item.Split('-')[0]);
             }
 
             request = new XCloudServiceRequest
@@ -116,7 +145,15 @@ namespace XBridgeTwitterBot
 
             var tradeHistoryResponse = await ServiceAsync<XCloudServiceResponse<List<DXAtomicSwap>>>(request);
 
-            tradeHistoryResponse.Reply = tradeHistoryResponse.Reply.Where(r => r.From != "CHN" && r.To != "CHN").ToList();
+            var tradeHistories = tradeHistoryResponse.Reply
+                .Where(p =>
+                {
+                    var trade = new List<string> { p.From, p.To };
+                    var result = trade.All(ta => assetWhiteList.Select(awl => awl.Ticker).Contains(ta));
+                    return result;
+                })
+                .ToList();
+            
             request = new XCloudServiceRequest
             {
                 Service = "xrs::CCMultiPrice",
@@ -127,16 +164,16 @@ namespace XBridgeTwitterBot
 
             // Output 
             // Total Volume in BLOCK
-            decimal totalVolumeBLOCK = CalculateVolume("BLOCK", multiPriceResponse.Reply, tradesummary);
+            decimal totalVolumeBLOCK = CalculateVolume("BLOCK", multiPriceResponse.Reply, trades);
             // Total Volume in BTC
-            decimal totalVolumeBTC = CalculateVolume("BTC", multiPriceResponse.Reply, tradesummary);
+            decimal totalVolumeBTC = CalculateVolume("BTC", multiPriceResponse.Reply, trades);
             // Total Volume in USD
-            decimal totalVolumeUSD = CalculateVolume("USD", multiPriceResponse.Reply, tradesummary);
+            decimal totalVolumeUSD = CalculateVolume("USD", multiPriceResponse.Reply, trades);
 
             // Average Trade size?
             // Fees Collected?
             // Total number of trades
-            int totalNumberOfTrades = tradeHistoryResponse.Reply.Count;
+            int totalNumberOfTrades = tradeHistories.Count;
 
             string tweet = "24 Hour @BlockDXExchange Statistics (" + DateTime.Now.ToUniversalTime().ToString("MMMM d yyyy") + " UTC)"
                 + "\n\nTrading Volume:"
@@ -155,6 +192,7 @@ namespace XBridgeTwitterBot
             HttpResponseMessage response = await client.PostAsync($"/api/xrs/Service", httpContent);
 
             string result = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
             return JsonConvert.DeserializeObject<T>(result);
         }
 
