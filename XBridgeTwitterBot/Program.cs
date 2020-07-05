@@ -126,10 +126,18 @@ namespace XBridgeTwitterBot
             Console.WriteLine(tweetText);
             var childrenTweets = await ComposeChildrenTweets();
             childrenTweets.ForEach(ct => Console.WriteLine(ct));
-            var tweet = Tweet.PublishTweet(tweetText);
-            childrenTweets.ForEach(ct => Tweet.PublishTweetInReplyTo(ct, tweet));
+            var parentTweet = Tweet.PublishTweet(tweetText);
+
+            Tweetinvi.Models.ITweet prevTweet = parentTweet;
+            Tweetinvi.Models.ITweet currTweet;
+            foreach (var childTweet in childrenTweets)
+            {
+                currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
+                prevTweet = currTweet;
+            };
+
             var discordChannel = _discordSocketClient.GetChannel(discordSettings.Value.ChannelId) as IMessageChannel;
-            await discordChannel.SendMessageAsync(tweet.Url);
+            await discordChannel.SendMessageAsync(parentTweet.Url);
         }
 
         private static async Task<List<string>> ComposeChildrenTweets()
@@ -138,30 +146,33 @@ namespace XBridgeTwitterBot
 
             string totalVolumePerTradedCoinResult = await totalVolumePerTradedCoinResponse.Content.ReadAsStringAsync();
 
-            var volumesPerCoin = JsonConvert.DeserializeObject<List<TokenTradeStatistics>>(totalVolumePerTradedCoinResult);
-
             var childrenTweets = new List<string>();
-            foreach (var coinVolume in volumesPerCoin)
+            if (!string.IsNullOrEmpty(totalVolumePerTradedCoinResult))
             {
-                string tweet = "Trading Volume $" + coinVolume.Token + ":"
-                    + "\n";
+                var volumesPerCoin = JsonConvert.DeserializeObject<List<TokenTradeStatistics>>(totalVolumePerTradedCoinResult);
 
-                foreach (var volume in coinVolume.Volumes.OrderByDescending(v => v.Unit))
+                foreach (var coinVolume in volumesPerCoin)
                 {
-                    string unit = "\n$";
-                    if (volume.Unit.Equals("USD"))
+                    string tweet = "Trading Volume $" + coinVolume.Token + ":"
+                        + "\n";
+
+                    foreach (var volume in coinVolume.Volumes.OrderByDescending(v => v.Unit))
                     {
-                        unit += (volume.Unit + ": $" + volume.Volume.ToString("N3", CultureInfo.InvariantCulture));
+                        string unit = "\n$";
+                        if (volume.Unit.Equals("USD"))
+                        {
+                            unit += (volume.Unit + ": $" + volume.Volume.ToString("N3", CultureInfo.InvariantCulture));
+                        }
+                        else
+                            unit += (volume.Unit + ": " + volume.Volume.ToString("N3", CultureInfo.InvariantCulture) + " " + volume.Unit);
+
+                        tweet += unit;
                     }
-                    else
-                        unit += (volume.Unit + ": " + volume.Volume.ToString("N3", CultureInfo.InvariantCulture) + " " + volume.Unit);
 
-                    tweet += unit;
+                    tweet += "\n\nCompleted Orders: " + coinVolume.TradeCount;
+
+                    childrenTweets.Add(tweet);
                 }
-
-                tweet += "\n\Completed Orders: " + coinVolume.TradeCount;
-
-                childrenTweets.Add(tweet);
             }
             return childrenTweets;
         }
@@ -190,20 +201,31 @@ namespace XBridgeTwitterBot
                 + "\n\nTotal Trading Volume:"
                 + "\n";
 
-            foreach (var volume in volumes.OrderByDescending(v => v.Unit))
+            if (volumes?.Any() != true)
             {
-                string unit = "\n$";
-                if (volume.Unit.Equals("USD"))
+                tweet += "\n";
+                tweet += "$USD: $0.000\n";
+                tweet += "$BTC: 0.000 BTC\n";
+                tweet += "$BLOCK: 0.000 BLOCK";
+            } 
+            else
+            {
+                foreach (var volume in volumes.OrderByDescending(v => v.Unit))
                 {
-                    unit += (volume.Unit + ": $" + volume.Volume.ToString("N3", CultureInfo.InvariantCulture));
+                    string unit = "\n$";
+                    if (volume.Unit.Equals("USD"))
+                    {
+                        unit += (volume.Unit + ": $" + volume.Volume.ToString("N3", CultureInfo.InvariantCulture));
+                    }
+                    else
+                        unit += (volume.Unit + ": " + volume.Volume.ToString("N3", CultureInfo.InvariantCulture) + " " + volume.Unit);
+
+                    tweet += unit;
                 }
-                else
-                    unit += (volume.Unit + ": " + volume.Volume.ToString("N3", CultureInfo.InvariantCulture) + " " + volume.Unit);
-
-                tweet += unit;
             }
-
+            
             tweet += "\n\nNumber of Trades: " + totalTradeCount;
+            
 
             return tweet;
         }

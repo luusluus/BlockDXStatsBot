@@ -25,7 +25,7 @@ spec:
         run: blockdxtwitterbot
     spec:
       containers:
-      - image: lucienmartijn/xbridge.twitter.bot:v1.1.16
+      - image: lucienmartijn/xbridge.twitter.bot:v1.1.20
         imagePullPolicy: Always
         name: blockdxtwitterbot
         ports:
