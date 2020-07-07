@@ -123,21 +123,25 @@ namespace XBridgeTwitterBot
         private async Task Publish()
         {
             var tweetText = await ComposeParentTweet();
-            Console.WriteLine(tweetText);
-            var childrenTweets = await ComposeChildrenTweets();
-            childrenTweets.ForEach(ct => Console.WriteLine(ct));
-            var parentTweet = Tweet.PublishTweet(tweetText);
-
-            Tweetinvi.Models.ITweet prevTweet = parentTweet;
-            Tweetinvi.Models.ITweet currTweet;
-            foreach (var childTweet in childrenTweets)
+            if (!string.IsNullOrEmpty(tweetText))
             {
-                currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
-                prevTweet = currTweet;
-            };
+                Console.WriteLine(tweetText);
+                var childrenTweets = await ComposeChildrenTweets();
+                childrenTweets.ForEach(ct => Console.WriteLine(ct));
+                var parentTweet = Tweet.PublishTweet(tweetText);
 
-            var discordChannel = _discordSocketClient.GetChannel(discordSettings.Value.ChannelId) as IMessageChannel;
-            await discordChannel.SendMessageAsync(parentTweet.Url);
+                Tweetinvi.Models.ITweet prevTweet = parentTweet;
+                Tweetinvi.Models.ITweet currTweet;
+                foreach (var childTweet in childrenTweets)
+                {
+                    currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
+                    prevTweet = currTweet;
+                };
+
+                var discordChannel = _discordSocketClient.GetChannel(discordSettings.Value.ChannelId) as IMessageChannel;
+                await discordChannel.SendMessageAsync(parentTweet.Url);
+            }
+            
         }
 
         private static async Task<List<string>> ComposeChildrenTweets()
@@ -203,10 +207,11 @@ namespace XBridgeTwitterBot
 
             if (volumes?.Any() != true)
             {
-                tweet += "\n";
-                tweet += "$USD: $0.000\n";
-                tweet += "$BTC: 0.000 BTC\n";
-                tweet += "$BLOCK: 0.000 BLOCK";
+                //tweet += "\n";
+                //tweet += "$USD: $0.000\n";
+                //tweet += "$BTC: 0.000 BTC\n";
+                //tweet += "$BLOCK: 0.000 BLOCK";
+                return string.Empty;
             } 
             else
             {

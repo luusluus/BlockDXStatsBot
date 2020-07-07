@@ -17,6 +17,7 @@
 .settings/
 *.sublime-workspace
 appsettings.json
+appsettings.Development.json
 
 # IDE - Visual Studio
 .vs/
