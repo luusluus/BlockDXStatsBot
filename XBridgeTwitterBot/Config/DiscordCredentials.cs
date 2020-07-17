@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace XBridgeTwitterBot
+namespace XBridgeTwitterBot.Config
 {
-    public class DiscordSettings
+    public class DiscordCredentials
     {
         public string Token { get; set; }
         public ulong ChannelId { get; set; }

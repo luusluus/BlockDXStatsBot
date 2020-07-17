@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace XBridgeTwitterBot
+namespace XBridgeTwitterBot.Entity
 {
-    class TokenVolume
+    public class CoinVolume
     {
         public string Unit { get; set; }
         public decimal Volume { get; set; }

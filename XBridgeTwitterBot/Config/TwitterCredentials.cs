@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace XBridgeTwitterBot
+namespace XBridgeTwitterBot.Config
 {
-    public class TwitterSettings
+    public class TwitterCredentials
     {
         public string ConsumerKey { get; set; }
         public string ConsumerSecret { get; set; }
