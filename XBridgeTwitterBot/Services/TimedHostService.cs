@@ -87,26 +87,26 @@ namespace XBridgeTwitterBot.Services
 
                 Console.WriteLine(detailsTweet);
 
-                //Console.WriteLine("Tweeting...");
-                //var parentTweet = Tweet.PublishTweet(mainTweet);
+                Console.WriteLine("Tweeting...");
+                var parentTweet = Tweet.PublishTweet(mainTweet);
 
-                //Tweetinvi.Models.ITweet prevTweet = parentTweet;
-                //Tweetinvi.Models.ITweet currTweet;
-                //foreach (var childTweet in childrenTweets)
-                //{
-                //    currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
-                //    prevTweet = currTweet;
-                //};
+                Tweetinvi.Models.ITweet prevTweet = parentTweet;
+                Tweetinvi.Models.ITweet currTweet;
+                foreach (var childTweet in childrenTweets)
+                {
+                    currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
+                    prevTweet = currTweet;
+                };
 
-                //var completedOrdersPostedTweet = Tweet.PublishTweetInReplyTo(completedOrdersTweet, prevTweet);
+                var completedOrdersPostedTweet = Tweet.PublishTweetInReplyTo(completedOrdersTweet, prevTweet);
 
-                //var openOrdersPostedTweet = Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
+                var openOrdersPostedTweet = Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
 
-                //Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
+                Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
 
-                //Console.WriteLine("Sharing on Discord...");
-                //var discordChannel = _discordSocketClient.GetChannel(_discordCredentials.Value.ChannelId) as IMessageChannel;
-                //await discordChannel.SendMessageAsync(parentTweet.Url);
+                Console.WriteLine("Sharing on Discord...");
+                var discordChannel = _discordSocketClient.GetChannel(_discordCredentials.Value.ChannelId) as IMessageChannel;
+                await discordChannel.SendMessageAsync(parentTweet.Url);
             }
 
         }
