@@ -27,18 +27,23 @@ namespace XBridgeTwitterBot.Services
             _blocknetApiService = blocknetApiService;
         }
 
-        public async Task<string> ComposeMoreDetailsTweet()
+
+        public async Task<string> ComposeOrdersAndActiveMarkets()
         {
             var openOrders = await _blocknetApiService.DxGetOrders();
+
+            var openOrdersPerMarket = await _dxDataService.GetOpenOrdersPerMarket();
 
             string tweet = string.Empty;
 
             tweet += "Number of Open Orders: " + openOrders.Count();
 
-            tweet += "\n\nMore Info below 👇";
+            tweet += "\n\nActive Markets:"; //BLOCK/DASH DASH/LTC
 
-            tweet += "\n\nOfficial: https://blockdx.com/orders/";
-            tweet += "\n\nCommunity: https://blockdx.co/orders";
+            openOrdersPerMarket.ForEach(am =>
+            {
+                tweet += "\n" + am.Market.Maker + "/" + am.Market.Taker + ":" + am.Count;
+            });
 
             return tweet;
         }
@@ -119,6 +124,18 @@ namespace XBridgeTwitterBot.Services
             }
 
             tweet += "\n\nNumber of Trades: " + totalTradeCount;
+            return tweet;
+        }
+
+        public string ComposeMoreDetailsTweet()
+        {
+            string tweet = string.Empty;
+
+            tweet += "\n\nMore live statistics below 👇";
+
+            tweet += "\n\nOfficial: https://blockdx.com/orders/";
+            tweet += "\n\nCommunity: https://blockdx.co/orders";
+
             return tweet;
         }
     }

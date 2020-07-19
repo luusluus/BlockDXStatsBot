@@ -79,11 +79,15 @@ namespace XBridgeTwitterBot.Services
 
                 Console.WriteLine(completedOrdersTweet);
 
-                var openOrdersTweet = await _composeTweetService.ComposeMoreDetailsTweet();
-
+                var openOrdersTweet = await _composeTweetService.ComposeOrdersAndActiveMarkets();
 
                 Console.WriteLine(openOrdersTweet);
 
+                var detailsTweet = _composeTweetService.ComposeMoreDetailsTweet();
+
+                Console.WriteLine(detailsTweet);
+
+                //Console.WriteLine("Tweeting...");
                 //var parentTweet = Tweet.PublishTweet(mainTweet);
 
                 //Tweetinvi.Models.ITweet prevTweet = parentTweet;
@@ -96,8 +100,11 @@ namespace XBridgeTwitterBot.Services
 
                 //var completedOrdersPostedTweet = Tweet.PublishTweetInReplyTo(completedOrdersTweet, prevTweet);
 
-                //Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
+                //var openOrdersPostedTweet = Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
 
+                //Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
+
+                //Console.WriteLine("Sharing on Discord...");
                 //var discordChannel = _discordSocketClient.GetChannel(_discordCredentials.Value.ChannelId) as IMessageChannel;
                 //await discordChannel.SendMessageAsync(parentTweet.Url);
             }

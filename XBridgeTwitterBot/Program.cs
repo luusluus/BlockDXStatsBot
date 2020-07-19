@@ -22,9 +22,13 @@ namespace XBridgeTwitterBot
             var host = new HostBuilder()
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
+                    Console.WriteLine("env host: " + hostingContext.HostingEnvironment.EnvironmentName);
+                    //hostingContext.HostingEnvironment.EnvironmentName = "Development";
                     config.SetBasePath(hostingContext.HostingEnvironment.ContentRootPath);
-                    config.AddJsonFile("appsettings.json", true, true);
-                    config.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json");
+                    config.AddJsonFile("appsettings.json", false);
+                    config.AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", true);
+
+                    config.AddEnvironmentVariables();
                 })
                 .ConfigureServices((hostingContext, services) =>
                 {

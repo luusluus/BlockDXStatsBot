@@ -8,10 +8,10 @@ namespace XBridgeTwitterBot.Interfaces
 {
     public interface IComposeTweetService
     {
-        Task<string> ComposeMoreDetailsTweet();
+        Task<string> ComposeOrdersAndActiveMarkets();
         Task<string> ComposeCompletedOrderTweet();
         Task<List<string>> ComposeVolumePerCoinTweets();
         Task<string> ComposeTotalVolumeTweet();
-
+        string ComposeMoreDetailsTweet();
     }
 }

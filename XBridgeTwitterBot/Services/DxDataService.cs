@@ -19,6 +19,18 @@ namespace XBridgeTwitterBot.Services
             _client = client;
         }
 
+        public async Task<List<OpenOrdersPerMarket>> GetOpenOrdersPerMarket()
+        {
+            var openOrdersPerMarketResponse = await _client.GetAsync("GetOpenOrdersPerMarket");
+
+            if (!openOrdersPerMarketResponse.IsSuccessStatusCode)
+                throw new ApplicationException();
+
+            string openOrdersPerMarketResult = await openOrdersPerMarketResponse.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<List<OpenOrdersPerMarket>>(openOrdersPerMarketResult);
+        }
+
         public async Task<List<CompletedOrderCount>> GetOneDayCompletedOrders()
         {
             var completedOrdersResponse = await _client.GetAsync("GetOneDayCompletedOrders");
