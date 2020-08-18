@@ -100,6 +100,9 @@ namespace XBridgeTwitterBot.Services
 
                     Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
 
+                    if (_discordCredentials == null)
+                        throw new ApplicationException("Discord credentials are null");
+
                     var discordChannel = _discordSocketClient.GetChannel(_discordCredentials.Value.ChannelId) as IMessageChannel;
                     await discordChannel.SendMessageAsync(parentTweet.Url);
                 }
