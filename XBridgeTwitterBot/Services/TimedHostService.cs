@@ -1,11 +1,8 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -21,19 +18,16 @@ namespace XBridgeTwitterBot.Services
         //const double interval = 5000;
 
         private System.Timers.Timer _timer;
-        private readonly ILogger<TimedHostedService> _logger;
         private readonly IComposeTweetService _composeTweetService;
         private readonly DiscordSocketClient _discordSocketClient;
         IOptions<DiscordCredentials> _discordCredentials;
 
         public TimedHostedService(
-            ILogger<TimedHostedService> logger, 
             IComposeTweetService composeTweetService,
-            DiscordSocketClient discord, 
+            DiscordSocketClient discord,
             IOptions<DiscordCredentials> discordCredentials
             )
         {
-            _logger = logger;
             _composeTweetService = composeTweetService;
             _discordSocketClient = discord;
             _discordCredentials = discordCredentials;
@@ -67,48 +61,53 @@ namespace XBridgeTwitterBot.Services
 
         private async Task Publish()
         {
-            var mainTweet = await _composeTweetService.ComposeTotalVolumeTweet();
-            if (!string.IsNullOrEmpty(mainTweet))
+            try
             {
-                Console.WriteLine(mainTweet);
-                var childrenTweets = await _composeTweetService.ComposeVolumePerCoinTweets();
-
-                childrenTweets.ForEach(ct => Console.WriteLine(ct));
-
-                var completedOrdersTweet = await _composeTweetService.ComposeCompletedOrderTweet();
-
-                Console.WriteLine(completedOrdersTweet);
-
-                var openOrdersTweet = await _composeTweetService.ComposeOrdersAndActiveMarkets();
-
-                Console.WriteLine(openOrdersTweet);
-
-                var detailsTweet = _composeTweetService.ComposeMoreDetailsTweet();
-
-                Console.WriteLine(detailsTweet);
-
-                Console.WriteLine("Tweeting...");
-                var parentTweet = Tweet.PublishTweet(mainTweet);
-
-                Tweetinvi.Models.ITweet prevTweet = parentTweet;
-                Tweetinvi.Models.ITweet currTweet;
-                foreach (var childTweet in childrenTweets)
+                Console.WriteLine("Publishing...");
+                var mainTweet = await _composeTweetService.ComposeTotalVolumeTweet();
+                if (!string.IsNullOrEmpty(mainTweet))
                 {
-                    currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
-                    prevTweet = currTweet;
-                };
+                    Console.WriteLine(mainTweet);
+                    var childrenTweets = await _composeTweetService.ComposeVolumePerCoinTweets();
 
-                var completedOrdersPostedTweet = Tweet.PublishTweetInReplyTo(completedOrdersTweet, prevTweet);
+                    childrenTweets.ForEach(ct => Console.WriteLine(ct));
 
-                var openOrdersPostedTweet = Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
+                    var completedOrdersTweet = await _composeTweetService.ComposeCompletedOrderTweet();
 
-                Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
+                    Console.WriteLine(completedOrdersTweet);
 
-                Console.WriteLine("Sharing on Discord...");
-                var discordChannel = _discordSocketClient.GetChannel(_discordCredentials.Value.ChannelId) as IMessageChannel;
-                await discordChannel.SendMessageAsync(parentTweet.Url);
+                    var openOrdersTweet = await _composeTweetService.ComposeOrdersAndActiveMarkets();
+
+                    Console.WriteLine(openOrdersTweet);
+
+                    var detailsTweet = _composeTweetService.ComposeMoreDetailsTweet();
+
+                    Console.WriteLine(detailsTweet);
+
+                    var parentTweet = Tweet.PublishTweet(mainTweet);
+
+                    Tweetinvi.Models.ITweet prevTweet = parentTweet;
+                    Tweetinvi.Models.ITweet currTweet;
+                    foreach (var childTweet in childrenTweets)
+                    {
+                        currTweet = Tweet.PublishTweetInReplyTo(childTweet, prevTweet);
+                        prevTweet = currTweet;
+                    };
+
+                    var completedOrdersPostedTweet = Tweet.PublishTweetInReplyTo(completedOrdersTweet, prevTweet);
+
+                    var openOrdersPostedTweet = Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
+
+                    Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
+
+                    var discordChannel = _discordSocketClient.GetChannel(_discordCredentials.Value.ChannelId) as IMessageChannel;
+                    await discordChannel.SendMessageAsync(parentTweet.Url);
+                }
             }
-
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public Task StopAsync(CancellationToken stoppingToken)

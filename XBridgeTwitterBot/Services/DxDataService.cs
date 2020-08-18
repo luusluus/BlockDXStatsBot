@@ -55,11 +55,10 @@ namespace XBridgeTwitterBot.Services
             return JsonConvert.DeserializeObject<int>(totalTradeCountResult);
         }
 
-        public async Task<List<CoinVolume>> GetOneDayTotalVolume(string coin, List<string> units)
+        public async Task<List<CoinVolume>> GetOneDayTotalVolume(string coin, string units)
         {
-            string queryString = "GetOneDayTotalVolume?coin=" + coin;
+            string queryString = "GetOneDayTotalVolume?coin=" + coin + "&units=" + units;
 
-            units.ForEach(unit => queryString += "&units=" + unit);
             var totalVolumeResponse = await _client.GetAsync(queryString);
 
             if (!totalVolumeResponse.IsSuccessStatusCode)
@@ -70,11 +69,9 @@ namespace XBridgeTwitterBot.Services
             return JsonConvert.DeserializeObject<List<CoinVolume>>(totalVolumeResult);
         }
 
-        public async Task<List<CoinTradeStatistics>> GetOneDayTotalVolumePerCoin(List<string> units)
+        public async Task<List<CoinTradeStatistics>> GetOneDayTotalVolumePerCoin(string units)
         {
-            string queryString = "GetOneDayTotalVolumePerCoin?";
-
-            units.ForEach(unit => queryString += "&units=" + unit);
+            string queryString = "GetOneDayTotalVolumePerCoin?units=" + units;
 
             var totalVolumePerTradedCoinResponse = await _client.GetAsync(queryString);
 

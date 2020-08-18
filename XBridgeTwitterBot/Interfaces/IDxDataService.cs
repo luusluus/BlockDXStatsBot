@@ -11,9 +11,9 @@ namespace XBridgeTwitterBot.Interfaces
     {
         Task<List<CompletedOrderCount>> GetOneDayCompletedOrders();
 
-        Task<List<CoinTradeStatistics>> GetOneDayTotalVolumePerCoin(List<string> units);
+        Task<List<CoinTradeStatistics>> GetOneDayTotalVolumePerCoin(string units);
 
-        Task<List<CoinVolume>> GetOneDayTotalVolume(string coin, List<string> units);
+        Task<List<CoinVolume>> GetOneDayTotalVolume(string coin, string units);
 
         Task<int> GetOneDayTotalTradesCount();
 

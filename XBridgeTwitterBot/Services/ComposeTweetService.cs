@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using XBridgeTwitterBot.Interfaces;
 
@@ -38,11 +36,11 @@ namespace XBridgeTwitterBot.Services
 
             tweet += "Number of Open Orders: " + openOrders.Count();
 
-            tweet += "\n\nActive Markets:"; //BLOCK/DASH DASH/LTC
+            tweet += "\n\nActive Markets:\n"; //BLOCK/DASH DASH/LTC
 
             openOrdersPerMarket.ForEach(am =>
             {
-                tweet += "\n" + am.Market.Maker + "/" + am.Market.Taker + ":" + am.Count;
+                tweet += "\n$" + am.Market.Maker + " / $" + am.Market.Taker + ": " + am.Count;
             });
 
             return tweet;
@@ -51,6 +49,9 @@ namespace XBridgeTwitterBot.Services
         public async Task<string> ComposeCompletedOrderTweet()
         {
             var completedOrders = await _dxDataService.GetOneDayCompletedOrders();
+
+            if (completedOrders.Count.Equals(0))
+                throw new Exception("No completed orders on the 24h on BlockDX");
 
             string tweet = "Completed Orders:\n\n";
 
@@ -64,7 +65,7 @@ namespace XBridgeTwitterBot.Services
 
         public async Task<List<string>> ComposeVolumePerCoinTweets()
         {
-            var volumesPerCoin = await _dxDataService.GetOneDayTotalVolumePerCoin(units);
+            var volumesPerCoin = await _dxDataService.GetOneDayTotalVolumePerCoin(string.Join(",", units));
 
             var childrenTweets = new List<string>();
             foreach (var coinVolume in volumesPerCoin)
@@ -96,7 +97,7 @@ namespace XBridgeTwitterBot.Services
         }
         public async Task<string> ComposeTotalVolumeTweet()
         {
-            var volumes = await _dxDataService.GetOneDayTotalVolume("0", units);
+            var volumes = await _dxDataService.GetOneDayTotalVolume("0", string.Join(",", units));
             var totalTradeCount = await _dxDataService.GetOneDayTotalTradesCount();
 
             string tweet = "24 Hour @BlockDXExchange Statistics (" + DateTime.Now.ToUniversalTime().ToString("MMMM d yyyy") + " UTC)"
@@ -105,7 +106,7 @@ namespace XBridgeTwitterBot.Services
 
             if (volumes?.Any() != true)
             {
-                return string.Empty;
+                throw new Exception("No 24h volume on the BlockDX.");
             }
             else
             {
