@@ -1,17 +1,15 @@
-﻿using System;
-using Tweetinvi;
-using System.Threading.Tasks;
-using System.Net.Http.Headers;
-using Microsoft.Extensions.Configuration;
-using System.IO;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Hosting;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Tweetinvi;
 using XBridgeTwitterBot.Config;
-using XBridgeTwitterBot.Services;
 using XBridgeTwitterBot.Interfaces;
+using XBridgeTwitterBot.Services;
 
 namespace XBridgeTwitterBot
 {
@@ -23,7 +21,7 @@ namespace XBridgeTwitterBot
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     Console.WriteLine("env host: " + hostingContext.HostingEnvironment.EnvironmentName);
-                    //hostingContext.HostingEnvironment.EnvironmentName = "Development";
+                    hostingContext.HostingEnvironment.EnvironmentName = "Development";
                     config.SetBasePath(hostingContext.HostingEnvironment.ContentRootPath);
                     config.AddJsonFile("appsettings.json", false);
                     config.AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", true);
@@ -56,7 +54,7 @@ namespace XBridgeTwitterBot
                     });
 
                     var twitterCredentials = hostingContext.Configuration.GetSection("Twitter").Get<TwitterCredentials>();
-                    
+
                     Auth.SetUserCredentials(
                         twitterCredentials.ConsumerKey,
                         twitterCredentials.ConsumerSecret,
@@ -65,9 +63,9 @@ namespace XBridgeTwitterBot
                     );
 
                     services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
-                    {                                       
-                        LogLevel = LogSeverity.Verbose,     
-                        MessageCacheSize = 1000             
+                    {
+                        LogLevel = LogSeverity.Verbose,
+                        MessageCacheSize = 1000
                     }));
 
                     services.AddSingleton<StartupService>();
@@ -85,7 +83,7 @@ namespace XBridgeTwitterBot
             await provider.GetRequiredService<StartupService>().StartAsync();
 
             await host.RunAsync();
-        }      
+        }
 
     }
 }
