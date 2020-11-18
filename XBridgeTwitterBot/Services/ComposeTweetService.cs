@@ -80,7 +80,7 @@ namespace XBridgeTwitterBot.Services
                         string unit = "\n$";
                         if (volume.Unit.Equals("USD"))
                         {
-                            unit += (volume.Unit + ": $" + volume.Volume.ToString("N3", CultureInfo.InvariantCulture));
+                            unit += (volume.Unit + ": $" + volume.Volume.ToString("N2", CultureInfo.InvariantCulture));
                         }
                         else
                             unit += (volume.Unit + ": " + volume.Volume.ToString("N3", CultureInfo.InvariantCulture) + " " + volume.Unit);
