@@ -28,7 +28,7 @@ namespace XBridgeTwitterBot.Services
 
         public async Task<List<string>> ComposeOrdersAndActiveMarkets()
         {
-            var TWEET_MAX_CHARS = 280;
+            var TWEET_ORDERS_MAX = 12;
 
             var openOrders = await _blocknetApiService.DxGetOrders();
 
@@ -37,37 +37,34 @@ namespace XBridgeTwitterBot.Services
             var tweets = new List<string>();
 
             var tweet = string.Empty;
-            tweet += "Number of Open Orders: " + openOrders.Count();
+            tweet += "Number of Open Orders: " + openOrders.Count() + "\n\n";
 
-            tweet += "\n\nActive Markets:"; //BLOCK/DASH DASH/LTC
+            // 12 lines of open order pairs max in each tweet
 
-            // 14 lines of open order pairs with above text is close to 280 characters
-
-            var amountOfTweets = Math.Ceiling((decimal)openOrdersPerMarket.Count / 14);
-            if (openOrdersPerMarket.Count >= 14)
-            {
-                tweet += " (1/" + amountOfTweets + ")";
-            }
-
-            tweet += "\n";
+            int amountOfTweets = (int)Math.Ceiling((decimal)(openOrdersPerMarket.Count) / TWEET_ORDERS_MAX);
 
             var concatString = string.Empty;
 
-            int idx = 2;
-            openOrdersPerMarket.ForEach(am =>
+            int idx = 1;
+            for (int i = 0; i < amountOfTweets; i = i + TWEET_ORDERS_MAX)
             {
-                concatString = "\n$" + am.Market.Maker + " / $" + am.Market.Taker + ": " + am.Count;
-                if (tweet.Length + concatString.Length > TWEET_MAX_CHARS)
+                var orders = openOrdersPerMarket.Skip(i).Take(TWEET_ORDERS_MAX).ToList();
+
+                if (i > 0)
+                    tweet = string.Empty;
+
+                if (openOrdersPerMarket.Count > TWEET_ORDERS_MAX)
+                    tweet += "Active Markets (" + idx + "/" + amountOfTweets + "):\n\n";
+
+                else
+                    tweet += "Active Markets:\n\n";
+                orders.ForEach(am =>
                 {
-                    tweets.Add(tweet);
-                    tweet = "(" + idx + "/" + amountOfTweets + ")\n";
-                    idx++;
-                }
+                    tweet += "\n$" + am.Market.Maker + " / $" + am.Market.Taker + ": " + am.Count;
+                });
 
-                tweet += concatString;
-            });
-
-            tweets.Add(tweet);
+                tweets.Add(tweet);
+            }
 
             return tweets;
         }
