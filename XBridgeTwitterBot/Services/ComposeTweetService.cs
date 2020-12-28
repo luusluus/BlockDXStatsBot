@@ -26,24 +26,50 @@ namespace XBridgeTwitterBot.Services
         }
 
 
-        public async Task<string> ComposeOrdersAndActiveMarkets()
+        public async Task<List<string>> ComposeOrdersAndActiveMarkets()
         {
+            var TWEET_MAX_CHARS = 280;
+
             var openOrders = await _blocknetApiService.DxGetOrders();
 
             var openOrdersPerMarket = await _dxDataService.GetOpenOrdersPerMarket();
 
-            string tweet = string.Empty;
+            var tweets = new List<string>();
 
+            var tweet = string.Empty;
             tweet += "Number of Open Orders: " + openOrders.Count();
 
-            tweet += "\n\nActive Markets:\n"; //BLOCK/DASH DASH/LTC
+            tweet += "\n\nActive Markets:"; //BLOCK/DASH DASH/LTC
 
+            // 17 lines of open order pairs with above text is usually more than 280 characters
+
+            var amountOfTweets = Math.Ceiling((decimal)openOrdersPerMarket.Count / 17);
+            if (openOrdersPerMarket.Count >= 17)
+            {
+                tweet += " (1/" + amountOfTweets + ")";
+            }
+
+            tweet += "\n";
+
+            var concatString = string.Empty;
+
+            int idx = 2;
             openOrdersPerMarket.ForEach(am =>
             {
-                tweet += "\n$" + am.Market.Maker + " / $" + am.Market.Taker + ": " + am.Count;
+                concatString = "\n$" + am.Market.Maker + " / $" + am.Market.Taker + ": " + am.Count;
+                if (tweet.Length + concatString.Length > TWEET_MAX_CHARS)
+                {
+                    tweets.Add(tweet);
+                    tweet = "(" + idx + "/" + amountOfTweets + ")\n";
+                    idx++;
+                }
+
+                tweet += concatString;
             });
 
-            return tweet;
+            tweets.Add(tweet);
+
+            return tweets;
         }
 
         public async Task<string> ComposeCompletedOrderTweet()

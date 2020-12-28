@@ -76,9 +76,9 @@ namespace XBridgeTwitterBot.Services
 
                     Console.WriteLine(completedOrdersTweet);
 
-                    var openOrdersTweet = await _composeTweetService.ComposeOrdersAndActiveMarkets();
+                    var openOrdersTweets = await _composeTweetService.ComposeOrdersAndActiveMarkets();
 
-                    Console.WriteLine(openOrdersTweet);
+                    openOrdersTweets.ForEach(ct => Console.WriteLine(ct));
 
                     var detailsTweet = _composeTweetService.ComposeMoreDetailsTweet();
 
@@ -96,9 +96,15 @@ namespace XBridgeTwitterBot.Services
 
                     var completedOrdersPostedTweet = Tweet.PublishTweetInReplyTo(completedOrdersTweet, prevTweet);
 
-                    var openOrdersPostedTweet = Tweet.PublishTweetInReplyTo(openOrdersTweet, completedOrdersPostedTweet);
+                    prevTweet = completedOrdersPostedTweet;
+                    foreach (var openOrderTweet in openOrdersTweets)
+                    {
+                        currTweet = Tweet.PublishTweetInReplyTo(openOrderTweet, prevTweet);
+                        prevTweet = currTweet;
+                    };
 
-                    Tweet.PublishTweetInReplyTo(detailsTweet, openOrdersPostedTweet);
+
+                    Tweet.PublishTweetInReplyTo(detailsTweet, prevTweet);
 
                     var channelId = Convert.ToUInt64(_discordCredentials.Value.ChannelId);
 
