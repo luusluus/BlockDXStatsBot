@@ -41,10 +41,10 @@ namespace XBridgeTwitterBot.Services
 
             tweet += "\n\nActive Markets:"; //BLOCK/DASH DASH/LTC
 
-            // 17 lines of open order pairs with above text is usually more than 280 characters
+            // 14 lines of open order pairs with above text is close to 280 characters
 
-            var amountOfTweets = Math.Ceiling((decimal)openOrdersPerMarket.Count / 17);
-            if (openOrdersPerMarket.Count >= 17)
+            var amountOfTweets = Math.Ceiling((decimal)openOrdersPerMarket.Count / 14);
+            if (openOrdersPerMarket.Count >= 14)
             {
                 tweet += " (1/" + amountOfTweets + ")";
             }
