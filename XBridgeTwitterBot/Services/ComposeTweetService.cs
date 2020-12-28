@@ -45,10 +45,8 @@ namespace XBridgeTwitterBot.Services
 
             var concatString = string.Empty;
 
-            Console.Write(amountOfTweets);
-
             int idx = 1;
-            for (int i = 0; i < amountOfTweets; i = i + TWEET_ORDERS_MAX)
+            for (int i = 0; i < openOrdersPerMarket.Count; i = i + TWEET_ORDERS_MAX)
             {
                 var orders = openOrdersPerMarket.Skip(i).Take(TWEET_ORDERS_MAX).ToList();
 
@@ -60,6 +58,7 @@ namespace XBridgeTwitterBot.Services
 
                 else
                     tweet += "Active Markets:\n\n";
+
                 orders.ForEach(am =>
                 {
                     tweet += "\n$" + am.Market.Maker + " / $" + am.Market.Taker + ": " + am.Count;
